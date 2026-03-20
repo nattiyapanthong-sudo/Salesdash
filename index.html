@@ -617,8 +617,9 @@ function loadFromGoogleSheets(){
   if(!url){setSync('error','No Google Sheets URL');return;}
   setSync('loading','Fetching from Google Sheets…');
   const csvUrl=url.replace('/pubhtml','/pub?output=csv');
+  const corsProxy='https://corsproxy.io/?'+encodeURIComponent(csvUrl);
   console.log('Fetching CSV from:', csvUrl);
-  fetch(csvUrl).then(r=>{
+  fetch(corsProxy).then(r=>{
     console.log('Response status:', r.status);
     return r.text();
   }).then(csv=>{
@@ -641,7 +642,7 @@ function loadFromGoogleSheets(){
       },
       error:err=>{setSync('error','Parse error');console.error('Parse error:',err);}
     });
-  }).catch(err=>{setSync('error','Load failed');console.error('Fetch error:',err);});
+  }).catch(err=>{setSync('error','CORS blocked');console.error('Fetch error:',err);});
 }
 
 (function init(){
