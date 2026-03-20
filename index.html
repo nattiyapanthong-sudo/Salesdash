@@ -617,7 +617,7 @@ function loadFromGoogleSheets(){
   if(!url){setSync('error','No Google Sheets URL');return;}
   setSync('loading','Fetching from Google Sheets…');
   const csvUrl=url.replace('/pubhtml','/export?format=csv&gid=0');
-  const corsProxy='https://api.allorigins.win/raw?url='+encodeURIComponent(csvUrl);
+  const corsProxy='https://corsproxy.io/?'+encodeURIComponent(csvUrl);
   console.log('Fetching CSV via proxy:', corsProxy);
   fetch(corsProxy).then(r=>{
     console.log('Response status:', r.status);
