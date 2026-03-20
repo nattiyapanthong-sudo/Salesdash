@@ -617,7 +617,8 @@ function loadFromGoogleSheets(){
   if(!url){setSync('error','No Google Sheets URL');return;}
   setSync('loading','Fetching from Google Sheets…');
   const csvUrl=url.replace('/pubhtml','/export?format=csv&gid=0');
-  fetch(csvUrl).then(r=>r.text()).then(csv=>{
+  const corsUrl='https://cors-anywhere.herokuapp.com/'+csvUrl;
+  fetch(corsUrl).then(r=>r.text()).then(csv=>{
     Papa.parse(csv,{
       header:true,
       skipEmptyLines:true,
@@ -632,9 +633,9 @@ function loadFromGoogleSheets(){
         switchPage('summary');
         if(CONFIG.refreshInterval>0)setTimeout(loadFromGoogleSheets,CONFIG.refreshInterval);
       },
-      error:err=>{setSync('error','Parse failed');alert('Could not parse Google Sheets data.\n\n'+err.message);}
+      error:err=>{setSync('error','Parse failed');console.error('Papa parse error:',err);}
     });
-  }).catch(err=>{setSync('error','Fetch failed');alert('Could not fetch from Google Sheets.\nMake sure the sheet is published.\n\n'+err.message);});
+  }).catch(err=>{setSync('error','Fetch failed');console.error('Fetch error:',err);});
 }
 
 (function init(){
