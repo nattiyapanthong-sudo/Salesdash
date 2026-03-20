@@ -616,26 +616,37 @@ function loadFromGoogleSheets(){
   const url=CONFIG.googleSheetUrl;
   if(!url){setSync('error','No Google Sheets URL');return;}
   setSync('loading','Fetching from Google Sheets…');
-  const csvUrl=url.replace('/pubhtml','/export?format=csv&gid=0');
-  const corsUrl='https://api.allorigins.win/raw?url='+encodeURIComponent(csvUrl);
-  fetch(corsUrl).then(r=>r.text()).then(csv=>{
-    Papa.parse(csv,{
-      header:true,
-      skipEmptyLines:true,
-      complete:results=>{
-        const C=CONFIG.col;
-        allRows=results.data.map(r=>({date:fmtDate(r[C.date]),platform:String(r[C.platform]||'').trim(),gmv:toN(r[C.gmv]),visitors:toN(r[C.visitors]),pageViews:toN(r[C.pageViews]),itemSold:toN(r[C.itemSold]),aov:toN(r[C.aov]),cr:toN(r[C.cr]),product:String(r[C.product]||'').trim(),category:String(r[C.category]||'').trim(),month:String(r[C.month]||'').trim(),year:toN(r[C.year]),})).filter(r=>r.date||r.gmv>0);
-        if(!allRows.length){setSync('error','Empty sheet');return;}
-        populateFilters();
-        applyFilters();
-        setSync('live',allRows.length.toLocaleString()+' rows · Google Sheets');
-        document.getElementById('upload-screen').style.display='none';
-        switchPage('summary');
-        if(CONFIG.refreshInterval>0)setTimeout(loadFromGoogleSheets,CONFIG.refreshInterval);
-      },
-      error:err=>{setSync('error','Parse failed');console.error('Papa parse error:',err);}
-    });
-  }).catch(err=>{setSync('error','Fetch failed');console.error('Fetch error:',err);});
+  const jsonUrl=url.replace('/pubhtml','/gviz/tq?tqx=out:json&gid=0');
+  fetch(jsonUrl).then(r=>r.text()).then(txt=>{
+    const cleaned=txt.replace(/^[^{]*\{/,'{').replace(/\}[^}]*$/,'}');
+    const json=JSON.parse(cleaned);
+    if(!json.table||!json.table.rows){setSync('error','Empty sheet');return;}
+    const C=CONFIG.col;
+    const cols=json.table.cols.map(c=>c.label);
+    const colIdx={};
+    Object.entries(C).forEach(([k,v])=>{colIdx[k]=cols.indexOf(v);});
+    allRows=json.table.rows.map(r=>({
+      date:fmtDate(r.c[colIdx.date]?.v||''),
+      platform:String(r.c[colIdx.platform]?.v||'').trim(),
+      gmv:toN(r.c[colIdx.gmv]?.v),
+      visitors:toN(r.c[colIdx.visitors]?.v),
+      pageViews:toN(r.c[colIdx.pageViews]?.v),
+      itemSold:toN(r.c[colIdx.itemSold]?.v),
+      aov:toN(r.c[colIdx.aov]?.v),
+      cr:toN(r.c[colIdx.cr]?.v),
+      product:String(r.c[colIdx.product]?.v||'').trim(),
+      category:String(r.c[colIdx.category]?.v||'').trim(),
+      month:String(r.c[colIdx.month]?.v||'').trim(),
+      year:toN(r.c[colIdx.year]?.v),
+    })).filter(r=>r.date||r.gmv>0);
+    if(!allRows.length){setSync('error','Empty sheet');return;}
+    populateFilters();
+    applyFilters();
+    setSync('live',allRows.length.toLocaleString()+' rows · Google Sheets');
+    document.getElementById('upload-screen').style.display='none';
+    switchPage('summary');
+    if(CONFIG.refreshInterval>0)setTimeout(loadFromGoogleSheets,CONFIG.refreshInterval);
+  }).catch(err=>{setSync('error','Failed to fetch');console.error('Error:',err);});
 }
 
 (function init(){
