@@ -1,0 +1,19 @@
+# Add Excel data files to .gitignore to avoid large file commits
+data.xlsx
+*.xlsx
+*.xls
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (if needed in future)
+node_modules/
+package-lock.json
