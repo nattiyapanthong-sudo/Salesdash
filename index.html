@@ -646,8 +646,7 @@ function loadFromGoogleSheets(){
 }
 
 (function init(){
-  if(CONFIG.googleSheetUrl){loadFromGoogleSheets();}
-  else if(CONFIG.oneDriveUrl){loadFromUrl();}
+  if(CONFIG.oneDriveUrl){loadFromUrl();}
   else if(CONFIG.localFile){
     fetch(CONFIG.localFile).then(r=>{if(!r.ok)throw new Error('not found');return r.arrayBuffer();}).then(buf=>parseWb(buf,CONFIG.localFile)).catch(()=>{});
   }
