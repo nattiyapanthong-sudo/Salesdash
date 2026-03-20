@@ -19,7 +19,7 @@ const CONFIG = {
   googleSheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTs2RCqN1FbdV8-KM1T2p1o07iGyYtMPuLFofmXmjNBnpQP9ZSSWpTQeVCNEcZElJS5ub5OGUjeajBr/pubhtml',
 
   /* If you host data.xlsx next to this file on GitHub Pages */
-  localFile: 'data.xlsx',
+  localFile: '',
 
   /* OR paste your SharePoint download link (replace ?e=xx with ?download=1) */
   oneDriveUrl: '',
@@ -617,7 +617,7 @@ function loadFromGoogleSheets(){
   if(!url){setSync('error','No Google Sheets URL');return;}
   setSync('loading','Fetching from Google Sheets…');
   const csvUrl=url.replace('/pubhtml','/export?format=csv&gid=0');
-  const corsUrl='https://cors-anywhere.herokuapp.com/'+csvUrl;
+  const corsUrl='https://api.allorigins.win/raw?url='+encodeURIComponent(csvUrl);
   fetch(corsUrl).then(r=>r.text()).then(csv=>{
     Papa.parse(csv,{
       header:true,
