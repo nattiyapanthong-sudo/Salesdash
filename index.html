@@ -617,13 +617,14 @@ function loadFromGoogleSheets(){
   if(!url){setSync('error','No Google Sheets URL');return;}
   setSync('loading','Fetching from Google Sheets…');
   const csvUrl=url.replace('/pubhtml','/export?format=csv&gid=0');
-  console.log('Fetching CSV from:', csvUrl);
-  fetch(csvUrl,{mode:'no-cors'}).then(r=>{
+  const corsProxy='https://api.allorigins.win/raw?url='+encodeURIComponent(csvUrl);
+  console.log('Fetching CSV via proxy:', corsProxy);
+  fetch(corsProxy).then(r=>{
     console.log('Response status:', r.status);
     return r.text();
   }).then(csv=>{
     console.log('CSV length:', csv.length);
-    if(!csv||csv.length<10){setSync('error','Empty response');return;}
+    if(!csv||csv.length<10){setSync('error','Empty sheet');return;}
     Papa.parse(csv,{
       header:true,
       skipEmptyLines:true,
@@ -641,7 +642,7 @@ function loadFromGoogleSheets(){
       },
       error:err=>{setSync('error','Parse error');console.error('Parse error:',err);}
     });
-  }).catch(err=>{setSync('error','Fetch error');console.error('Fetch error:',err);});
+  }).catch(err=>{setSync('error','Network error');console.error('Fetch error:',err);});
 }
 
 (function init(){
