@@ -616,7 +616,7 @@ function loadFromGoogleSheets(){
   const url=CONFIG.googleSheetUrl;
   if(!url){setSync('error','No Google Sheets URL');return;}
   setSync('loading','Fetching from Google Sheets…');
-  const jsonUrl=url.replace('/pubhtml','/gviz/tq?tqx=out:json&gid=0');
+  const jsonUrl=url.replace('/pubhtml','/gviz/query?gid=0&tqx=out:json');
   console.log('Fetching from:', jsonUrl);
   fetch(jsonUrl).then(r=>{
     console.log('Response status:', r.status);
@@ -624,8 +624,10 @@ function loadFromGoogleSheets(){
     return r.text();
   }).then(txt=>{
     console.log('Raw response length:', txt.length);
-    const cleaned=txt.replace(/^[^{]*\{/,'{').replace(/\}[^}]*$/,'}');
-    const json=JSON.parse(cleaned);
+    if(!txt.includes('{')) throw new Error('Invalid response format');
+    const jsonMatch=txt.match(/\{[\s\S]*\}/);
+    if(!jsonMatch) throw new Error('No JSON found in response');
+    const json=JSON.parse(jsonMatch[0]);
     if(!json.table||!json.table.rows){setSync('error','Empty sheet');return;}
     const C=CONFIG.col;
     const cols=json.table.cols.map(c=>c.label);
@@ -654,7 +656,7 @@ function loadFromGoogleSheets(){
     if(CONFIG.refreshInterval>0)setTimeout(loadFromGoogleSheets,CONFIG.refreshInterval);
   }).catch(err=>{
     console.error('Full error:',err);
-    setSync('error','Failed to fetch');
+    setSync('error','Check sheet is public');
   });
 }
 
