@@ -617,7 +617,13 @@ function loadFromGoogleSheets(){
   if(!url){setSync('error','No Google Sheets URL');return;}
   setSync('loading','Fetching from Google Sheets…');
   const jsonUrl=url.replace('/pubhtml','/gviz/tq?tqx=out:json&gid=0');
-  fetch(jsonUrl).then(r=>r.text()).then(txt=>{
+  console.log('Fetching from:', jsonUrl);
+  fetch(jsonUrl).then(r=>{
+    console.log('Response status:', r.status);
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.text();
+  }).then(txt=>{
+    console.log('Raw response length:', txt.length);
     const cleaned=txt.replace(/^[^{]*\{/,'{').replace(/\}[^}]*$/,'}');
     const json=JSON.parse(cleaned);
     if(!json.table||!json.table.rows){setSync('error','Empty sheet');return;}
@@ -646,7 +652,10 @@ function loadFromGoogleSheets(){
     document.getElementById('upload-screen').style.display='none';
     switchPage('summary');
     if(CONFIG.refreshInterval>0)setTimeout(loadFromGoogleSheets,CONFIG.refreshInterval);
-  }).catch(err=>{setSync('error','Failed to fetch');console.error('Error:',err);});
+  }).catch(err=>{
+    console.error('Full error:',err);
+    setSync('error','Failed to fetch');
+  });
 }
 
 (function init(){
